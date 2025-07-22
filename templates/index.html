@@ -1,0 +1,59 @@
+{% extends "layout.html" %}
+
+{% block title %}Cargar Instancia{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Columna Izquierda: Carga y visualización de TXT -->
+    <div class="panel">
+        <h2>1. Cargar Archivo de Instancia (.txt)</h2>
+
+        <div class="panel-actions">
+            <form action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data" class="upload-form">
+                <input type="file" name="file" accept=".txt" required>
+                <button type="submit" class="btn btn-primary">Cargar y Procesar</button>
+            </form>
+        </div>
+
+        {% if filename %}
+        <div class="file-display">
+            <h3>Contenido de <code>{{ filename }}</code>:</h3>
+            <pre>{{ txt_content }}</pre>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Columna Derecha: Visualización de DZN y acciones -->
+    <div class="panel">
+        <h2>2. Formato de Datos MiniZinc (.dzn)</h2>
+
+        <div class="panel-actions">
+            {% if dzn_content %}
+            <div class="dzn-header">
+                <h3>Contenido <code>.dzn</code> generado</h3>
+                <a href="{{ url_for('download_dzn') }}" class="btn btn-secondary">Descargar .dzn</a>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if dzn_content %}
+        <div class="file-display">
+            <pre>{{ dzn_content }}</pre>
+        </div>
+        {% else %}
+        <p class="placeholder-text">Aquí se mostrará el contenido del archivo <code>.dzn</code> una vez que se procese un <code>.txt</code>.</p>
+        {% endif %}
+    </div>
+</div>
+
+{% if filename %}
+<div class="actions-container">
+    <h2>3. Ejecutar Modelo</h2>
+    <p>Una vez que los datos han sido cargados y convertidos, puedes ejecutar el solver para encontrar la solución óptima.</p>
+    <form action="{{ url_for('run_model') }}" method="post">
+        <button type="submit" class="btn btn-execute">▶ Ejecutar Solver</button>
+    </form>
+    <a href="{{ url_for('clear_session') }}" class="btn btn-secondary">Limpiar y Empezar de Nuevo</a>
+</div>
+{% endif %}
+{% endblock %}

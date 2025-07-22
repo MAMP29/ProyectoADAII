@@ -1,0 +1,113 @@
+{% extends "layout.html" %}
+
+{% block title %}Resultados de la Optimización{% endblock %}
+
+{% block content %}
+<div class="results-container">
+    <h2>Resultados de la Optimización <span class="status-badge">{{ results.status }}</span></h2>
+
+    {% if results.status == 'UNSATISFIABLE' %}
+    <div class="details-panel error-panel">
+        <h3>Solución No Encontrada</h3>
+        <p>{{ results.message }}</p>
+    </div>
+    {% else %}
+    <!-- Las tarjetas de resumen no cambian -->
+    <div class="summary-cards">
+        <div class="card">
+            <h4>Extremismo Final</h4>
+            <p class="metric">{{ results.extremismo_final }}</p>
+        </div>
+        <div class="card">
+            <h4>Costo Total Utilizado</h4>
+            <p class="metric">{{ results.costo_total }} / {{ results.ct_max }}</p>
+        </div>
+        <div class="card">
+            <h4>Movimientos Totales</h4>
+            <p class="metric">{{ results.movimientos_totales }} / {{ results.maxM_max }}</p>
+        </div>
+    </div>
+
+    <div class="details-panel">
+        <h3>Matriz de Movimientos (x[i, j])</h3>
+        <p>Muestra cuántas personas se movieron de la opinión 'i' (fila) a la opinión 'j' (columna).</p>
+        <div class="table-responsive">
+            <table class="results-table">
+                <thead>
+                <tr>
+                    <th>Desde \ Hacia</th>
+                    {% for j in range(results.matriz_x[0]|length) %}
+                    <th>Opinión {{ j + 1 }}</th>
+                    {% endfor %}
+                </tr>
+                </thead>
+                <tbody>
+                {% for row in results.matriz_x %}
+                <tr>
+                    <td><strong>Opinión {{ loop.index }}</strong></td>
+                    {% for cell_value in row %}
+                    <td>{{ cell_value }}</td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="details-panel">
+        <h3>Distribución Final de la Población (p_final)</h3>
+        <pre>{{ results.p_final }}</pre>
+    </div>
+
+    <div class="details-panel">
+        <h3>Comparativa de Distribución de Población</h3>
+        <canvas id="populationChart"></canvas>
+    </div>
+
+    <!-- Script para dibujar gráfico -->
+    <script>
+        const ctx = document.getElementById('populationChart');
+
+        const initialPopulation = {{ results.initial_p|tojson }};
+        const finalPopulation = {{ results.p_final|tojson }};
+        const labels = Array.from({ length: initialPopulation.length }, (_, i) => `Opinión ${i + 1}`);
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Población Inicial',
+                    data: initialPopulation,
+                    backgroundColor: 'rgba(108, 117, 125, 0.5)',
+                    borderColor: 'rgba(108, 117, 125, 1)',
+                    borderWidth: 1
+                }, {
+                    label: 'Población Final',
+                    data: finalPopulation,
+                    backgroundColor: 'rgba(0, 123, 255, 0.5)',
+                    borderColor: 'rgba(0, 123, 255, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'Número de Personas' }
+                    }
+                },
+                plugins: {
+                    legend: { position: 'top' },
+                    title: { display: true, text: 'Comparación de Población Antes y Después de la Optimización' }
+                }
+            }
+        });
+    </script>
+    {% endif %}
+
+    <a href="{{ url_for('clear_session') }}" class="btn btn-primary">Volver a Empezar</a>
+</div>
+{% endblock %}
