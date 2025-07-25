@@ -15,6 +15,10 @@
     <!-- Las tarjetas de resumen no cambian -->
     <div class="summary-cards">
         <div class="card">
+            <h4>Extremismo Inicial</h4>
+            <p class="metric">{{ results.initial_extremism }}</p>
+        </div>
+        <div class="card">
             <h4>Extremismo Final</h4>
             <p class="metric">{{ results.extremismo_final }}</p>
         </div>
@@ -25,6 +29,10 @@
         <div class="card">
             <h4>Movimientos Totales</h4>
             <p class="metric">{{ results.movimientos_totales }} / {{ results.maxM_max }}</p>
+        </div>
+        <div class="card">
+            <h4>Tiempo de Ejecución</h4>
+            <p class="metric">{{ results.execution_time }}</p>
         </div>
     </div>
 

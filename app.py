@@ -1,4 +1,6 @@
 import os
+import time
+
 import minizinc
 import datetime
 from flask import Flask, render_template, request, redirect, url_for, flash, session, Response
@@ -100,6 +102,13 @@ def run_model():
         return redirect(url_for('index'))
 
     try:
+        initial_extremism = sum(pi * exti for pi, exti in zip(data['p'], data['ext']))
+    except (TypeError, KeyError):
+        # Medida de seguridad por si los datos están mal formados
+        initial_extremism = 0
+        flash("No se pudo calcular el extremismo inicial debido a datos inválidos.", "warning")
+
+    try:
         # 1. Cargar el modelo .mzn
         model = minizinc.Model("./Proyecto.mzn")
         # 2. Seleccionar el solver (Gecode viene por defecto con MiniZinc)
@@ -118,7 +127,11 @@ def run_model():
         if result.status == minizinc.Status.OPTIMAL_SOLUTION or result.status == minizinc.Status.SATISFIED:
             # 6. Extraer los resultados y guardarlos para la página de resultados
             # Usamos result.solution para acceder a las variables por su nombre
+            solve_time_delta = result.statistics.get('solveTime', datetime.timedelta(0))
+            execution_time = solve_time_delta.total_seconds()
+
             final_results = {
+                "initial_extremism": f"{initial_extremism:.4f}",
                 "extremismo_final": f"{result.objective:.4f} (MINIMIZADO)",
                 "costo_total": f"{result['total_cost']:.4f}",
                 "movimientos_totales": result['total_moves'],
@@ -127,6 +140,7 @@ def run_model():
                 "ct_max": data['ct'],
                 "maxM_max": data['maxM'],
                 "initial_p": data['p'],
+                "execution_time": f"{execution_time:.4f} segundos",
                 "status": str(result.status)
             }
             print("to aca")

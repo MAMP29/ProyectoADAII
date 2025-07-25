@@ -11,3 +11,6 @@ logic/segugLoad.txt
 venv/
 mi_env/
 .env/
+pobas/
+
+batch_runner.py
