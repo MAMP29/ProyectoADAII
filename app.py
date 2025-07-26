@@ -5,6 +5,7 @@ import minizinc
 import datetime
 from flask import Flask, render_template, request, redirect, url_for, flash, session, Response
 from werkzeug.utils import secure_filename
+from pathlib import Path
 
 # --- La configuración no cambia ---
 UPLOAD_FOLDER = 'uploads'
@@ -109,8 +110,16 @@ def run_model():
         flash("No se pudo calcular el extremismo inicial debido a datos inválidos.", "warning")
 
     try:
+        
+        # Carga el binario de MiniZinc desde la ruta especificada si existe
+        if 'MINIZINC_BIN_PATH' in os.environ: 
+            MINIZINC_BIN = Path(os.environ['MINIZINC_BIN_PATH'])
+            driver = minizinc.Driver(MINIZINC_BIN)
+            minizinc.default_driver = driver
+            
         # 1. Cargar el modelo .mzn
         model = minizinc.Model("./Proyecto.mzn")
+
         # 2. Seleccionar el solver (Gecode viene por defecto con MiniZinc)
         solver = minizinc.Solver.lookup("coin-bc")
 
@@ -152,9 +161,11 @@ def run_model():
 
     except minizinc.error.MiniZincError as e:
         flash(f"Ocurrió un error con MiniZinc: {e}", "error")
+        print(f"Error de MiniZinc: {e}")
         return redirect(url_for('index'))
     except Exception as e:
         flash(f"Un error inesperado ocurrió: {e}", "error")
+        print(f"Error inesperado: {e}")
         return redirect(url_for('index'))
 
 
